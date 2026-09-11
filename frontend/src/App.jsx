@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
+const API_URL = 'https://booking-app-ex4b.onrender.com';
+
 function App() {
   const [bookings, setBookings] = useState([]);
   const [customerName, setCustomerName] = useState('');
@@ -8,7 +10,7 @@ function App() {
   const [bookingDate, setBookingDate] = useState('');
 
   const fetchBookings = () => {
-    fetch('http://localhost:3000/api/bookings')
+    fetch(`${API_URL}/api/bookings`)
       .then((res) => res.json())
       .then((data) => setBookings(data))
       .catch((err) => console.log('Error fetching bookings:', err));
@@ -21,7 +23,7 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    fetch('http://localhost:3000/api/bookings', {
+    fetch(`${API_URL}/api/bookings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -42,7 +44,7 @@ function App() {
 
   // Mark a booking as confirmed
   const handleConfirm = (booking) => {
-    fetch(`http://localhost:3000/api/bookings/${booking.id}`, {
+    fetch(`${API_URL}/api/bookings/${booking.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -59,7 +61,7 @@ function App() {
 
   // Delete a booking
   const handleDelete = (id) => {
-    fetch(`http://localhost:3000/api/bookings/${id}`, {
+    fetch(`${API_URL}/api/bookings/${id}`, {
       method: 'DELETE',
     })
       .then(() => fetchBookings())
