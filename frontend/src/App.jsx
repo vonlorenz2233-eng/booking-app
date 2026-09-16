@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'https://booking-app-ex4b.onrender.com';
+const API_URL = 'http://localhost:3000';
 
 function App() {
   const [bookings, setBookings] = useState([]);
@@ -42,7 +42,6 @@ function App() {
       .catch((err) => console.log('Error creating booking:', err));
   };
 
-  // Mark a booking as confirmed
   const handleConfirm = (booking) => {
     fetch(`${API_URL}/api/bookings/${booking.id}`, {
       method: 'PUT',
@@ -59,13 +58,28 @@ function App() {
       .catch((err) => console.log('Error updating booking:', err));
   };
 
-  // Delete a booking
   const handleDelete = (id) => {
     fetch(`${API_URL}/api/bookings/${id}`, {
       method: 'DELETE',
     })
       .then(() => fetchBookings())
       .catch((err) => console.log('Error deleting booking:', err));
+  };
+
+  // Start a PayMongo checkout for this booking
+  const handlePay = (id) => {
+    fetch(`${API_URL}/api/create-checkout/${id}`, {
+      method: 'POST',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          console.log('No checkout URL returned:', data);
+        }
+      })
+      .catch((err) => console.log('Error starting payment:', err));
   };
 
   return (
@@ -125,7 +139,12 @@ function App() {
               <b>{booking.status}</b>
             </div>
             <div style={{ marginTop: '6px' }}>
-              {booking.status !== 'confirmed' && (
+              {booking.status === 'pending' && (
+                <button onClick={() => handlePay(booking.id)} style={{ marginRight: '8px' }}>
+                  Pay Now
+                </button>
+              )}
+              {booking.status !== 'confirmed' && booking.status !== 'paid' && (
                 <button onClick={() => handleConfirm(booking)} style={{ marginRight: '8px' }}>
                   Confirm
                 </button>
