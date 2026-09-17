@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://booking-app-ex4b.onrender.com';
 
 function App() {
   const [bookings, setBookings] = useState([]);
