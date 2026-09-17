@@ -4,6 +4,9 @@ require('dotenv').config();
 console.log('URL:', process.env.SUPABASE_URL);
 console.log('KEY:', process.env.SUPABASE_KEY);
 
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
@@ -182,18 +185,38 @@ app.post('/webhooks/paymongo', async (req, res) => {
 
   const event = req.body;
 
-  if (event.data.attributes.type === 'checkout_session.payment.paid') {
+ if (event.data.attributes.type === 'checkout_session.payment.paid') {
     const bookingId = event.data.attributes.data.attributes.metadata.booking_id;
 
-    const { error } = await supabase
+    const { data: updatedBooking, error } = await supabase
       .from('bookings')
       .update({ status: 'paid' })
-      .eq('id', bookingId);
+      .eq('id', bookingId)
+      .select()
+      .single();
 
     if (error) {
       console.log('Failed to update booking after payment:', error);
     } else {
       console.log(`Booking ${bookingId} marked as paid`);
+
+      // Send confirmation email
+      try {
+        await resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: updatedBooking.email,
+          subject: 'Your booking is confirmed!',
+          html: `
+            <h2>Booking Confirmed</h2>
+            <p>Hi ${updatedBooking.customer_name},</p>
+            <p>Your payment was received and your booking is confirmed for <b>${updatedBooking.booking_date}</b>.</p>
+            <p>Thank you for booking with us!</p>
+          `,
+        });
+        console.log(`Confirmation email sent to ${updatedBooking.email}`);
+      } catch (emailError) {
+        console.log('Failed to send confirmation email:', emailError);
+      }
     }
   }
 
