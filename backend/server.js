@@ -152,13 +152,30 @@ app.post('/webhooks/paymongo', async (req, res) => {
   const signatureHeader = req.headers['paymongo-signature'];
   const webhookSecret = process.env.PAYMONGO_WEBHOOK_SECRET;
 
-  // Verify this request genuinely came from PayMongo
+  if (!signatureHeader) {
+    console.log('No signature header — ignoring request');
+    return res.status(401).send('Missing signature');
+  }
+
+  // Split header into its three parts: t=..., te=..., li=...
+  const parts = signatureHeader.split(',').reduce((acc, part) => {
+    const [key, value] = part.split('=');
+    acc[key] = value;
+    return acc;
+  }, {});
+
+  const timestamp = parts.t;
+  const testSignature = parts.te;
+
+  // Build the exact string PayMongo signed: "timestamp.rawBody"
+  const signedPayload = `${timestamp}.${req.rawBody.toString()}`;
+
   const expectedSignature = crypto
     .createHmac('sha256', webhookSecret)
-    .update(req.rawBody)
+    .update(signedPayload)
     .digest('hex');
 
-  if (!signatureHeader || !signatureHeader.includes(expectedSignature)) {
+  if (expectedSignature !== testSignature) {
     console.log('Invalid webhook signature — ignoring request');
     return res.status(401).send('Invalid signature');
   }
