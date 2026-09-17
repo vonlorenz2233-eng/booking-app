@@ -122,8 +122,8 @@ app.post('/api/create-checkout/:id', async (req, res) => {
               },
             ],
             payment_method_types: ['gcash', 'card', 'qrph'],
-            success_url: 'https://booking-app-git-main-vonlorenz2233-eng.vercel.app?payment=success',
-            cancel_url: 'https://booking-app-git-main-vonlorenz2233-eng.vercel.app?payment=cancelled',
+            success_url: 'https://booking-app-livid-seven.vercel.app?payment=success',
+            cancel_url: 'https://booking-app-livid-seven.vercel.app?payment=cancelled',
             metadata: {
               booking_id: id,
             },
